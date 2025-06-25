@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import Hangman from './components/Hangman.jsx';
+import Keyboard from './components/Keyboard.jsx';
+import './index.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+const words = ['react', 'javascript', 'vite', 'component', 'developer'];
+
+export default function App() {
+  const [word, setWord] = useState(() => words[Math.floor(Math.random() * words.length)]);
+  const [guesses, setGuesses] = useState([]);
+  const incorrect = guesses.filter(letter => !word.includes(letter));
+
+  const handleGuess = (letter) => {
+    if (guesses.includes(letter)) return;
+    setGuesses([...guesses, letter]);
+  };
+
+  const isWinner = word.split('').every(l => guesses.includes(l));
+  const isLoser = incorrect.length >= 6;
+
+  const reset = () => {
+    setWord(words[Math.floor(Math.random() * words.length)]);
+    setGuesses([]);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+    <div className="container">
+      <h1>Hangman</h1>
+      <Hangman incorrect={incorrect.length} />
+      <p className="word">
+        {word.split('').map((l, i) => (
+          <span key={i} className="letter">{guesses.includes(l) || isLoser ? l : '_'}</span>
+        ))}
       </p>
-    </>
-  )
+      <Keyboard onGuess={handleGuess} guessed={guesses} disabled={isWinner || isLoser} />
+      {(isWinner || isLoser) && (
+        <div className="result">
+          <p>{isWinner ? '🎉 You Won!' : '❌ You Lost!'}</p>
+          <button onClick={reset}>Play Again</button>
+        </div>
+      )}
+    </div>
+  );
 }
-
-export default App
